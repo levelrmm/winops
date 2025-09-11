@@ -19,6 +19,7 @@ package powershell
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -119,6 +120,40 @@ func TestNewSession(t *testing.T) {
 	ps, err := NewSession()
 	if err != nil {
 		t.Fatalf("NewSession() failed: %v", err)
+	}
+	if err := ps.Close(); err != nil {
+		t.Fatalf("Close() failed: %v", err)
+	}
+}
+
+func TestNewSessionPwsh7(t *testing.T) {
+	// Stub out pwsh7 since it doesn't exist on Forge.
+	powerShell7Exe = filepath.Join(os.Getenv("SystemRoot"), `\System32\WindowsPowerShell\v1.0\powershell.exe`)
+	ps, err := NewSessionPwsh7()
+	if err != nil {
+		t.Fatalf("NewSessionPwsh7() failed: %v", err)
+	}
+	if err := ps.Close(); err != nil {
+		t.Fatalf("Close() failed: %v", err)
+	}
+}
+
+func TestNewSessionNoPwsh7(t *testing.T) {
+	ps, err := newSession(false)
+	if err != nil {
+		t.Fatalf("newSession() failed: %v", err)
+	}
+	if err := ps.Close(); err != nil {
+		t.Fatalf("Close() failed: %v", err)
+	}
+}
+
+func TestNewSessionWithPwsh7(t *testing.T) {
+	// Stub out pwsh7 since it doesn't exist on Forge.
+	powerShell7Exe = filepath.Join(os.Getenv("SystemRoot"), `\System32\WindowsPowerShell\v1.0\powershell.exe`)
+	ps, err := newSession(true)
+	if err != nil {
+		t.Fatalf("newSession() failed: %v", err)
 	}
 	if err := ps.Close(); err != nil {
 		t.Fatalf("Close() failed: %v", err)

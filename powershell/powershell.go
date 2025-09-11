@@ -43,7 +43,8 @@ const (
 // PSConfig represents the command line parameters to use with invocations.
 type PSConfig struct {
 	ErrAction ErrorAction // The ErrorAction that is set.
-	Params    []string    // Additional parameters for calls to powershell.exe
+	Params    []string    // Additional parameters for calls to powershell.exe.
+	usePwsh7  bool        // Use PowerShell 7 if true.
 }
 
 var (

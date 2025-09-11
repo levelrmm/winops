@@ -34,6 +34,7 @@ var (
 	powerShellCmd = powerShell
 
 	powerShellExe = filepath.Join(os.Getenv("SystemRoot"), `\System32\WindowsPowerShell\v1.0\powershell.exe`)
+	powerShell7Exe = `C:\Program Files\PowerShell\7\pwsh.exe`
 )
 
 // powerShell represents the OS command used to run a powerShell cmdlet on
@@ -121,7 +122,21 @@ type Session struct {
 
 // NewSession creates and starts a new PowerShell session.
 func NewSession() (*Session, error) {
-	cmd := exec.Command(powerShellExe, "-NoExit", "-NoProfile", "-Command", "-")
+	return newSession(false)
+}
+
+// NewSessionPwsh7 creates and starts a new PowerShell 7 session.
+func NewSessionPwsh7() (*Session, error) {
+	return newSession(true)
+}
+
+func newSession(usePwsh7 bool) (*Session, error) {
+	exe := powerShellExe
+	if usePwsh7 {
+		exe = powerShell7Exe
+	}
+
+	cmd := exec.Command(exe, "-NoExit", "-NoProfile", "-Command", "-")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, fmt.Errorf("failed to open stdin pipe: %w", err)

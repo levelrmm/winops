@@ -42,26 +42,26 @@ func TestCommand(t *testing.T) {
 		desc              string
 		psCmd             string
 		supplemental      []string
-		fakePowerShellCmd func([]string) ([]byte, error)
+		fakePowerShellCmd func([]string, bool) ([]byte, error)
 		err               error
 	}{
 		{
 			desc:              "powershell error",
 			psCmd:             "Verb-Noun",
-			fakePowerShellCmd: func([]string) ([]byte, error) { return nil, errors.New("powershell-error") },
+			fakePowerShellCmd: func([]string, bool) ([]byte, error) { return nil, errors.New("powershell-error") },
 			err:               ErrPowerShell,
 		},
 		{
 			desc:              "supplemental error",
 			psCmd:             "Verb-Noun",
 			supplemental:      []string{"cmdlet-error"},
-			fakePowerShellCmd: func([]string) ([]byte, error) { return []byte("cmdlet-error: details"), nil },
+			fakePowerShellCmd: func([]string, bool) ([]byte, error) { return []byte("cmdlet-error: details"), nil },
 			err:               ErrSupplemental,
 		},
 		{
 			desc:              "success",
 			psCmd:             "Verb-Noun",
-			fakePowerShellCmd: func([]string) ([]byte, error) { return []byte("output"), nil },
+			fakePowerShellCmd: func([]string, bool) ([]byte, error) { return []byte("output"), nil },
 			err:               nil,
 		},
 	}

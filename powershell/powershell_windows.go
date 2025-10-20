@@ -33,7 +33,7 @@ var (
 	// Dependency injection for testing.
 	powerShellCmd = powerShell
 
-	powerShellExe = filepath.Join(os.Getenv("SystemRoot"), `\System32\WindowsPowerShell\v1.0\powershell.exe`)
+	powerShellExe  = filepath.Join(os.Getenv("SystemRoot"), `\System32\WindowsPowerShell\v1.0\powershell.exe`)
 	powerShell7Exe = `C:\Program Files\PowerShell\7\pwsh.exe`
 )
 
@@ -42,17 +42,21 @@ var (
 // The params parameter should be populated with all of the required
 // parameters to invoke powershell.exe from the command line. If an error is
 // returned to the OS, it will be returned here.
-func powerShell(params []string) ([]byte, error) {
-	out, err := exec.Command(powerShellExe, params...).CombinedOutput()
+func powerShell(params []string, pwsh7 bool) ([]byte, error) {
+	exe := powerShellExe
+	if pwsh7 {
+		exe = powerShell7Exe
+	}
+	out, err := exec.Command(exe, params...).CombinedOutput()
 	if err != nil {
-		return []byte{}, fmt.Errorf(`exec.Command(%q, %s) command returned: %q: %v`, powerShellExe, params, out, err)
+		return []byte{}, fmt.Errorf(`exec.Command(%q, %s) command returned: %q: %v`, exe, params, out, err)
 	}
 	return out, nil
 }
 
-func execute(params []string, supplemental []string) ([]byte, error) {
+func execute(params []string, supplemental []string, pwsh7 bool) ([]byte, error) {
 	// Invoke PowerShell
-	out, err := powerShellCmd(params)
+	out, err := powerShellCmd(params, pwsh7)
 	if err != nil {
 		return out, fmt.Errorf("powershell returned %v: %w", err, ErrPowerShell)
 	}
@@ -84,7 +88,7 @@ func Command(psCmd string, supplemental []string, config *PSConfig) ([]byte, err
 	cmd := fmt.Sprintf(`$ErrorActionPreference="%s"; %s`, config.ErrAction, psCmd)
 	params := append(config.Params, "-Command", cmd)
 
-	return execute(params, supplemental)
+	return execute(params, supplemental, config.UsePwsh7)
 }
 
 // File executes a PowerShell script file.
@@ -98,7 +102,7 @@ func File(path string, args []string, supplemental []string, config *PSConfig) (
 	params := append(config.Params, "-File", path)
 	params = append(params, args...)
 
-	return execute(params, supplemental)
+	return execute(params, supplemental, config.UsePwsh7)
 }
 
 // Version gathers powershell version information from the host, returns an error if version information cannot be obtained.

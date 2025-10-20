@@ -44,16 +44,17 @@ const (
 type PSConfig struct {
 	ErrAction ErrorAction // The ErrorAction that is set.
 	Params    []string    // Additional parameters for calls to powershell.exe.
-	usePwsh7  bool        // Use PowerShell 7 if true.
+	UsePwsh7  bool        // Use PowerShell 7 if true.
 }
 
 var (
 	// defaultConfig is the default configuration for PowerShell calls.
-	// It assumes that powershell.exe is calledc with -NoProfile and that
+	// It assumes that powershell.exe is called with -NoProfile and that
 	// the desired ErrorAction preference is "Stop"
 	defaultConfig = PSConfig{
 		ErrAction: Stop,
 		Params:    []string{"-NoProfile"},
+		UsePwsh7:  false,
 	}
 
 	// ErrPowerShell represents an error returned by PowerShell.

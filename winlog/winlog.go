@@ -102,17 +102,28 @@ func DefaultSubscribeConfig() (*SubscribeConfig, error) {
 // expensive Windows API calls. Pass in an empty map on the first call. Once
 // you've finished using GetRenderedEvents, pass all the contained values to Close.
 func GetRenderedEvents(config *SubscribeConfig, publisherCache map[string]windows.Handle, resultSet windows.Handle, maxEvents int, locale uint32) ([]string, error) {
+	return GetRenderedEventsTimeout(2000, config, publisherCache, resultSet, maxEvents, locale)
+}
+
+// GetRenderedEventsTimeout iterates over a subscription or query result set up
+// to a configurable maximum and returns the rendered events as a slice of UTF8
+// formatted XML strings. A timeout is used to get the first event handles.
+// publisherCache is a cache of Handles for publisher metadata to avoid
+// expensive Windows API calls. Pass in an empty map on the first call. Once
+// you've finished using GetRenderedEvents, pass all the contained values to
+// Close.
+func GetRenderedEventsTimeout(timeout time.Duration, config *SubscribeConfig, publisherCache map[string]windows.Handle, resultSet windows.Handle, maxEvents int, locale uint32) ([]string, error) {
 	var events = make([]windows.Handle, maxEvents)
 	var returned uint32
 
 	// Get handles to events from the result set.
 	err := wevtapi.EvtNext(
-		resultSet,           // Handle to query or subscription result set.
-		uint32(len(events)), // The number of events to attempt to retrieve.
-		&events[0],          // Pointer to the array of event handles.
-		2000,                // Timeout in milliseconds to wait.
-		0,                   // Reserved. Must be zero.
-		&returned)           // The number of handles in the array that are set by the API.
+		resultSet,                      // Handle to query or subscription result set.
+		uint32(len(events)),            // The number of events to attempt to retrieve.
+		&events[0],                     // Pointer to the array of event handles.
+		uint32(timeout.Milliseconds()), // Timeout in milliseconds to wait.
+		0,                              // Reserved. Must be zero.
+		&returned)                      // The number of handles in the array that are set by the API.
 	if err == windows.ERROR_NO_MORE_ITEMS {
 		return nil, err
 	} else if err != nil {
